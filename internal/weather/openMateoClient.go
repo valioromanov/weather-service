@@ -3,7 +3,9 @@ package weather
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"net/http"
+	"weather-service/internal/logging"
 )
 
 type OpenMateoClient struct {
@@ -11,6 +13,10 @@ type OpenMateoClient struct {
 }
 
 func (c *OpenMateoClient) GetForecast(lat, long string) (ForecastMap, error) {
+	logrus.WithFields(logrus.Fields{
+		"lat":  lat,
+		"long": long,
+	}).Info("Going to get forecast from OpenMateo")
 	url := fmt.Sprintf(c.Url, lat, long)
 
 	resp, err := http.Get(url)
@@ -21,6 +27,7 @@ func (c *OpenMateoClient) GetForecast(lat, long string) (ForecastMap, error) {
 
 	var opr OpenMeteoResponse
 	if err := json.NewDecoder(resp.Body).Decode(&opr); err != nil {
+		logging.LogError(err, map[string]interface{}{"lat": lat, "long": long})
 		return nil, err
 	}
 	fm := make(ForecastMap)

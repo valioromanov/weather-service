@@ -2,12 +2,15 @@ package cache
 
 import (
 	"context"
+	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/sirupsen/logrus"
 	"time"
+	"weather-service/internal/logging"
 )
 
 type DynamoDBCache struct {
@@ -47,6 +50,10 @@ func (c *DynamoDBCache) Put(key string, weather *CachedWeather) error {
 }
 
 func (c *DynamoDBCache) Get(key string) (*CachedWeather, error) {
+	logrus.WithFields(logrus.Fields{
+		"key": key,
+	}).Info("Going to get a weather from cache")
+
 	resp, err := c.client.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String(c.tableName),
 		Key: map[string]types.AttributeValue{
@@ -54,6 +61,7 @@ func (c *DynamoDBCache) Get(key string) (*CachedWeather, error) {
 		},
 	})
 	if err != nil {
+		logging.LogError(fmt.Errorf("error while getting weather from cache: %w", err), map[string]interface{}{"key": key})
 		return nil, err
 	}
 
@@ -64,6 +72,7 @@ func (c *DynamoDBCache) Get(key string) (*CachedWeather, error) {
 	var data CachedWeather
 	err = attributevalue.UnmarshalMap(resp.Item, &data)
 	if err != nil {
+		logging.LogError(fmt.Errorf("error while unmarshaling weather from cache: %w", err), map[string]interface{}{"key": key})
 		return nil, err
 	}
 
