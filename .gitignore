@@ -1,6 +1,3 @@
 .idea/
 bootstrap
 lambda.zip
-terraform.tfstate
-.terraform
-terraform.tfstate.backup

@@ -25,8 +25,9 @@ func (c *OpenMateoClient) GetForecast(lat, long string) (ForecastMap, error) {
 	}
 	fm := make(ForecastMap)
 	for i := 0; i < len(opr.Daily.Time); i++ {
-		//dateToString := opr.Daily.Time[i].Format("2006-01-02")
 		fm[opr.Daily.Time[i]] = Forecast{
+			Latitude:          fmt.Sprintf("%.4f", opr.Latitude),
+			Longitude:         fmt.Sprintf("%.4f", opr.Longitude),
 			Temp2max:          opr.Daily.Temperature2mMax[i],
 			UvIndexMax:        opr.Daily.UVIndexMax[i],
 			PrecipProbability: opr.Daily.PrecipitationProbabilityMax[i],
