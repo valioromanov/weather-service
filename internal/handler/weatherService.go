@@ -13,12 +13,23 @@ import (
 	"weather-service/internal/weather"
 )
 
-type WeatherService struct {
-	WeatherClient weather.Client
-	WeatherCache  cache.Cache
+//go:generate mockgen --source=weatherService.go --destination mocks/weatherService.go --package mocks
+
+type ForecastClient interface {
+	GetForecast(lat, long string) (weather.ForecastMap, error)
 }
 
-func NewWeatherService(clnt weather.Client, wc cache.Cache) *WeatherService {
+type Cache interface {
+	Put(key string, weather *cache.CachedWeather) error
+	Get(key string) (*cache.CachedWeather, error)
+}
+
+type WeatherService struct {
+	WeatherClient ForecastClient
+	WeatherCache  Cache
+}
+
+func NewWeatherService(clnt ForecastClient, wc Cache) *WeatherService {
 	return &WeatherService{
 		WeatherClient: clnt,
 		WeatherCache:  wc,
@@ -37,7 +48,7 @@ func (wsvc *WeatherService) HandleRequest(ctx context.Context, req events.APIGat
 	}).Info("Going to handle request")
 
 	if lat == "" || lon == "" {
-		return events.APIGatewayProxyResponse{StatusCode: 400, Body: "Missing lat/lon/date"}, nil
+		return events.APIGatewayProxyResponse{StatusCode: 400, Body: "Missing lat/lon"}, nil
 	}
 
 	if date == "" {
@@ -77,7 +88,7 @@ func (wsvc *WeatherService) HandleRequest(ctx context.Context, req events.APIGat
 	}
 	if _, ok := forecastRes[date]; !ok {
 		errId := logging.LogError(err, map[string]interface{}{"lat": lat, "lon": lon, "date": date})
-		return events.APIGatewayProxyResponse{StatusCode: 400, Body: fmt.Sprintf("[%s] Weather forecast not found for this date", errId)}, nil
+		return events.APIGatewayProxyResponse{StatusCode: 404, Body: fmt.Sprintf("[%s] Weather forecast not found for this date", errId)}, nil
 	}
 
 	wsr := WeatherServiceResponse{date,
