@@ -8,8 +8,22 @@ import (
 	"weather-service/internal/logging"
 )
 
+//go:generate mockgen --source=openMateoClient.go --destination mocks/openMateoClient.go --package mocks
+
+type HttpRequester interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type OpenMateoClient struct {
-	Url string //"https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&daily=temperature_2m_max,uv_index_max,precipitation_probability_max&timezone=auto"
+	HttpClient HttpRequester
+	Url        string //"https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&daily=temperature_2m_max,uv_index_max,precipitation_probability_max&timezone=auto"
+}
+
+func NewOpenMateoClient(hc HttpRequester, url string) *OpenMateoClient {
+	return &OpenMateoClient{
+		HttpClient: hc,
+		Url:        url,
+	}
 }
 
 func (c *OpenMateoClient) GetForecast(lat, long string) (ForecastMap, error) {
@@ -17,9 +31,10 @@ func (c *OpenMateoClient) GetForecast(lat, long string) (ForecastMap, error) {
 		"lat":  lat,
 		"long": long,
 	}).Info("Going to get forecast from OpenMateo")
-	url := fmt.Sprintf(c.Url, lat, long)
 
-	resp, err := http.Get(url)
+	url := fmt.Sprintf(c.Url, lat, long)
+	req, _ := http.NewRequest("GET", url, nil)
+	resp, err := c.HttpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

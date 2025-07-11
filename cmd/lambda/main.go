@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/sirupsen/logrus"
+	"net/http"
 	"weather-service/internal/cache"
 	"weather-service/internal/handler"
 	"weather-service/internal/weather"
@@ -17,14 +18,24 @@ func main() {
 	logrus.SetLevel(logrus.InfoLevel)
 
 	//TODO Add url in env var
-	weatherClient := &weather.OpenMateoClient{Url: "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&daily=temperature_2m_max,uv_index_max,precipitation_probability_max&timezone=auto"}
+	//weatherClient := &weather.OpenMateoClient{Url: "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&daily=temperature_2m_max,uv_index_max,precipitation_probability_max&timezone=auto"}
+	// Initializing weather client
+	httpClient := &http.Client{}
+	weatherClient := weather.NewOpenMateoClient(httpClient, "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&daily=temperature_2m_max,uv_index_max,precipitation_probability_max&timezone=auto")
 
+	// Loading AWS config
 	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion("eu-west-1"))
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to create dynamoDB client")
 	}
-	client := dynamodb.NewFromConfig(cfg)
-	weatherCache := cache.NewDynamoDBCache(client)
+
+	// Initializing DynamoDB Client
+	dynamoDBClient := dynamodb.NewFromConfig(cfg)
+
+	// Initializing Cache
+	weatherCache := cache.NewDynamoDBCache(dynamoDBClient)
+
+	// Initializing handler
 	service := handler.NewWeatherService(weatherClient, weatherCache)
 
 	logrus.Info("Starting Weather api Lambda")
