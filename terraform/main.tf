@@ -32,7 +32,8 @@ resource "aws_lambda_function" "weather_lambda" {
 
   environment {
     variables = {
-      # Add env vars if needed
+      DYNAMODB_TABLE = aws_dynamodb_table.weather_cache.name
+      TTL_MINUTES = 10
     }
   }
 }
@@ -69,3 +70,39 @@ resource "aws_lambda_permission" "allow_apigw" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.weather_api.execution_arn}/*/*"
 }
+
+resource "aws_dynamodb_table" "weather_cache" {
+  name         = "WeatherCache"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "Key"
+
+  attribute {
+    name = "Key"
+    type = "S"
+  }
+
+  ttl {
+    attribute_name = "TTL"
+    enabled        = true
+  }
+}
+
+resource "aws_iam_role_policy" "lambda_dynamodb_policy" {
+  name = "lambda-dynamodb-access"
+  role = aws_iam_role.lambda_exec.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem"
+        ],
+        Resource = aws_dynamodb_table.weather_cache.arn
+      }
+    ]
+  })
+}
+
