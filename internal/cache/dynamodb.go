@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -13,23 +12,25 @@ import (
 	"weather-service/internal/logging"
 )
 
+//go:generate mockgen --source=dynamodb.go --destination mocks/dynamodb.go --package mocks
+
+type DynamoDBClient interface {
+	GetItem(ctx context.Context, input *dynamodb.GetItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.GetItemOutput, error)
+	PutItem(ctx context.Context, input *dynamodb.PutItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.PutItemOutput, error)
+}
+
 type DynamoDBCache struct {
-	client     *dynamodb.Client
+	client     DynamoDBClient
 	tableName  string
 	ttlMinutes int
 }
 
-func NewDynamoDBCache() (*DynamoDBCache, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("eu-west-1"))
-	if err != nil {
-		return nil, err
-	}
-	client := dynamodb.NewFromConfig(cfg)
+func NewDynamoDBCache(client DynamoDBClient) *DynamoDBCache {
 	return &DynamoDBCache{
 		client:     client,
 		tableName:  "WeatherCache",
 		ttlMinutes: 10,
-	}, nil
+	}
 }
 
 func (c *DynamoDBCache) Put(key string, weather *CachedWeather) error {
@@ -53,6 +54,10 @@ func (c *DynamoDBCache) Get(key string) (*CachedWeather, error) {
 	logrus.WithFields(logrus.Fields{
 		"key": key,
 	}).Info("Going to get a weather from cache")
+
+	if key == "" {
+		return nil, fmt.Errorf("empty key provided")
+	}
 
 	resp, err := c.client.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String(c.tableName),
