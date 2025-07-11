@@ -32,8 +32,9 @@ resource "aws_lambda_function" "weather_lambda" {
 
   environment {
     variables = {
-      DYNAMODB_TABLE = aws_dynamodb_table.weather_cache.name
+      DYNAMODB_TABLE = var.dynamo_table_name
       TTL_MINUTES = 10
+      OPEN_MATEO_URL= "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&daily=temperature_2m_max,uv_index_max,precipitation_probability_max&timezone=auto"
     }
   }
 }
