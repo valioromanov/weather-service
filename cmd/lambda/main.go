@@ -23,8 +23,7 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	//TODO Add url in env var
-	//weatherClient := &weather.OpenMateoClient{Url: "https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&daily=temperature_2m_max,uv_index_max,precipitation_probability_max&timezone=auto"}
+
 	// Initializing weather client
 	httpClient := &http.Client{}
 	weatherClient := weather.NewOpenMateoClient(httpClient, appConfig.OpenMateoURL)
