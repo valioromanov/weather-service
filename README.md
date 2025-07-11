@@ -5,7 +5,7 @@ A serverless weather service that fetches forecast data from Open-Meteo, caches 
 ## API Endpoint
 ### `GET /weather?lat={latitude}&lon={longitude}&date={date}`
 
-### ✅ Query Parameters
+### Query Parameters
 
 | Parameter | Type     | Required | Description                                                  |
 |-----------|----------|----------|--------------------------------------------------------------|
