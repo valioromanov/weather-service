@@ -25,11 +25,11 @@ type DynamoDBCache struct {
 	ttlMinutes int
 }
 
-func NewDynamoDBCache(client DynamoDBClient) *DynamoDBCache {
+func NewDynamoDBCache(client DynamoDBClient, tableName string, ttl int) *DynamoDBCache {
 	return &DynamoDBCache{
 		client:     client,
-		tableName:  "WeatherCache",
-		ttlMinutes: 10,
+		tableName:  tableName,
+		ttlMinutes: ttl,
 	}
 }
 
