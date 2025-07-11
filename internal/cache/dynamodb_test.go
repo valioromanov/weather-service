@@ -21,7 +21,7 @@ var _ = Describe("Dynamodb", mockutil.Mockable(func(helper *mockutil.Helper) {
 
 	BeforeEach(func() {
 		mockDynamoDBClient = mocks.NewMockDynamoDBClient(helper.Controller())
-		dynamoDBClient = cache.NewDynamoDBCache(mockDynamoDBClient)
+		dynamoDBClient = cache.NewDynamoDBCache(mockDynamoDBClient, "WeatherCache", 10)
 	})
 
 	Context("GetItem", func() {
