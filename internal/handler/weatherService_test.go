@@ -7,6 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"time"
 	"weather-service/helper/mockutil"
 	"weather-service/internal/cache"
 	"weather-service/internal/handler"
@@ -28,9 +29,10 @@ var _ = Describe("WeatherService", mockutil.Mockable(func(helper *mockutil.Helpe
 	})
 
 	Context("Right query params", func() {
+		today := time.Now().Format("2006-01-02")
 		When("cache does not return data", func() {
 			expectedRes := weather.ForecastMap{
-				"2025-07-10": weather.Forecast{
+				today: weather.Forecast{
 					Latitude:          "42.0",
 					Longitude:         "23.0",
 					Temp2max:          23,
@@ -45,30 +47,32 @@ var _ = Describe("WeatherService", mockutil.Mockable(func(helper *mockutil.Helpe
 			})
 
 			It("should return date from forecast client", func() {
+
 				req := events.APIGatewayProxyRequest{
 					QueryStringParameters: map[string]string{
 						"lat":  "42.0",
 						"lon":  "23.0",
-						"date": "2025-07-10",
+						"date": today,
 					},
 				}
 				res, err := ws.HandleRequest(context.TODO(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.StatusCode).To(Equal(200))
-				Expect(res.Body).To(Equal("{\"date\":\"2025-07-10\",\"latitude\":\"42.0\",\"longitude\":\"23.0\",\"temperature\":23,\"uvIndex\":3,\"rainProbability\":0}"))
+				Expect(res.Body).To(Equal(fmt.Sprintf("{\"date\":\"%s\",\"latitude\":\"42.0\",\"longitude\":\"23.0\",\"temperature\":23,\"uvIndex\":3,\"rainProbability\":0}", today)))
 			})
 		})
 		When("cache return data", func() {
 			BeforeEach(func() {
+				key := fmt.Sprintf("42.0_23.0_%s", today)
 				expectedCachedResult := &cache.CachedWeather{
-					Key:      "42.0_23.0_2025-07-10",
+					Key:      key,
 					TempMax:  23.0,
 					UVIndex:  3,
 					RainProb: 0,
 					TTL:      1233312,
 				}
 
-				mockCache.EXPECT().Get("42.0_23.0_2025-07-10").Return(expectedCachedResult, nil).Times(1)
+				mockCache.EXPECT().Get(key).Return(expectedCachedResult, nil).Times(1)
 				mockForecastClient.EXPECT().GetForecast(gomock.Any(), gomock.Any()).Return(nil, nil).Times(0)
 				mockCache.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil).Times(0)
 			})
@@ -78,13 +82,13 @@ var _ = Describe("WeatherService", mockutil.Mockable(func(helper *mockutil.Helpe
 					QueryStringParameters: map[string]string{
 						"lat":  "42.0",
 						"lon":  "23.0",
-						"date": "2025-07-10",
+						"date": today,
 					},
 				}
 				res, err := ws.HandleRequest(context.TODO(), req)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(res.StatusCode).To(Equal(200))
-				Expect(res.Body).To(Equal("{\"date\":\"2025-07-10\",\"latitude\":\"42.0\",\"longitude\":\"23.0\",\"temperature\":23,\"uvIndex\":3,\"rainProbability\":0}"))
+				Expect(res.Body).To(Equal(fmt.Sprintf("{\"date\":\"%s\",\"latitude\":\"42.0\",\"longitude\":\"23.0\",\"temperature\":23,\"uvIndex\":3,\"rainProbability\":0}", today)))
 			})
 		})
 
@@ -100,7 +104,7 @@ var _ = Describe("WeatherService", mockutil.Mockable(func(helper *mockutil.Helpe
 					QueryStringParameters: map[string]string{
 						"lat":  "42.0",
 						"lon":  "23.0",
-						"date": "2025-07-10",
+						"date": today,
 					},
 				}
 				res, err := ws.HandleRequest(context.TODO(), req)
