@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/sirupsen/logrus"
 	"time"
+	"weather-service/internal/handler"
 	"weather-service/internal/logging"
 )
 
@@ -33,7 +34,7 @@ func NewDynamoDBCache(client DynamoDBClient, tableName string, ttl int) *DynamoD
 	}
 }
 
-func (c *DynamoDBCache) Put(key string, weather *CachedWeather) error {
+func (c *DynamoDBCache) Put(key string, weather *handler.CachedWeather) error {
 	weather.Key = key
 	weather.TTL = time.Now().Add(time.Duration(c.ttlMinutes) * time.Minute).Unix()
 
@@ -50,7 +51,7 @@ func (c *DynamoDBCache) Put(key string, weather *CachedWeather) error {
 	return err
 }
 
-func (c *DynamoDBCache) Get(key string) (*CachedWeather, error) {
+func (c *DynamoDBCache) Get(key string) (*handler.CachedWeather, error) {
 	logrus.WithFields(logrus.Fields{
 		"key": key,
 	}).Info("Going to get a weather from cache")
@@ -74,7 +75,7 @@ func (c *DynamoDBCache) Get(key string) (*CachedWeather, error) {
 		return nil, nil // not found, and we will make a request if nothing was found so we do not need an error
 	}
 
-	var data CachedWeather
+	var data handler.CachedWeather
 	err = attributevalue.UnmarshalMap(resp.Item, &data)
 	if err != nil {
 		logging.LogError(fmt.Errorf("error while unmarshaling weather from cache: %w", err), map[string]interface{}{"key": key})

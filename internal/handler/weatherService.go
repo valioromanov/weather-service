@@ -8,20 +8,18 @@ import (
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
-	"weather-service/internal/cache"
 	"weather-service/internal/logging"
-	"weather-service/internal/weather"
 )
 
 //go:generate mockgen --source=weatherService.go --destination mocks/weatherService.go --package mocks
 
 type ForecastClient interface {
-	GetForecast(lat, long string) (weather.ForecastMap, error)
+	GetForecast(lat, long string) (ForecastMap, error)
 }
 
 type Cache interface {
-	Put(key string, weather *cache.CachedWeather) error
-	Get(key string) (*cache.CachedWeather, error)
+	Put(key string, weather *CachedWeather) error
+	Get(key string) (*CachedWeather, error)
 }
 
 type WeatherService struct {
@@ -104,7 +102,7 @@ func (wsvc *WeatherService) HandleRequest(ctx context.Context, req events.APIGat
 	return respond(wsr)
 }
 
-func batchPutToCacheStore(wsvc *WeatherService, fm weather.ForecastMap) {
+func batchPutToCacheStore(wsvc *WeatherService, fm ForecastMap) {
 	for key, value := range fm {
 		keyStore := fmt.Sprintf("%s_%s_%s", value.Latitude, value.Longitude, key)
 		data := ForecastToCachedData(value)
