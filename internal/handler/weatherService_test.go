@@ -9,10 +9,8 @@ import (
 	. "github.com/onsi/gomega"
 	"time"
 	"weather-service/helper/mockutil"
-	"weather-service/internal/cache"
 	"weather-service/internal/handler"
 	"weather-service/internal/handler/mocks"
-	"weather-service/internal/weather"
 )
 
 var _ = Describe("WeatherService", mockutil.Mockable(func(helper *mockutil.Helper) {
@@ -31,8 +29,8 @@ var _ = Describe("WeatherService", mockutil.Mockable(func(helper *mockutil.Helpe
 	Context("Right query params", func() {
 		today := time.Now().Format("2006-01-02")
 		When("cache does not return data", func() {
-			expectedRes := weather.ForecastMap{
-				today: weather.Forecast{
+			expectedRes := handler.ForecastMap{
+				today: handler.Forecast{
 					Latitude:          "42.0",
 					Longitude:         "23.0",
 					Temp2max:          23,
@@ -64,7 +62,7 @@ var _ = Describe("WeatherService", mockutil.Mockable(func(helper *mockutil.Helpe
 		When("cache return data", func() {
 			BeforeEach(func() {
 				key := fmt.Sprintf("42.0_23.0_%s", today)
-				expectedCachedResult := &cache.CachedWeather{
+				expectedCachedResult := &handler.CachedWeather{
 					Key:      key,
 					TempMax:  23.0,
 					UVIndex:  3,
@@ -116,8 +114,8 @@ var _ = Describe("WeatherService", mockutil.Mockable(func(helper *mockutil.Helpe
 
 		When("forecast not found for this date", func() {
 			BeforeEach(func() {
-				resFromClient := weather.ForecastMap{
-					"2025-07-10": weather.Forecast{
+				resFromClient := handler.ForecastMap{
+					"2025-07-10": handler.Forecast{
 						Latitude:          "42.0",
 						Longitude:         "23.0",
 						Temp2max:          23,
@@ -135,7 +133,7 @@ var _ = Describe("WeatherService", mockutil.Mockable(func(helper *mockutil.Helpe
 					QueryStringParameters: map[string]string{
 						"lat":  "42.0",
 						"lon":  "23.0",
-						"date": "2025-07-11",
+						"date": today,
 					},
 				}
 

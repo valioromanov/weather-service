@@ -2,11 +2,9 @@ package handler
 
 import (
 	"strings"
-	"weather-service/internal/cache"
-	"weather-service/internal/weather"
 )
 
-func CachedDataToWeatherServiceResponse(cachedData cache.CachedWeather) WeatherServiceResponse {
+func CachedDataToWeatherServiceResponse(cachedData CachedWeather) WeatherServiceResponse {
 	//key = lat_lon_date
 	keySplit := strings.Split(cachedData.Key, "_")
 
@@ -21,8 +19,8 @@ func CachedDataToWeatherServiceResponse(cachedData cache.CachedWeather) WeatherS
 	return wsr
 }
 
-func ForecastToCachedData(forecast weather.Forecast) *cache.CachedWeather {
-	return &cache.CachedWeather{
+func ForecastToCachedData(forecast Forecast) *CachedWeather {
+	return &CachedWeather{
 		TempMax:  forecast.Temp2max,
 		UVIndex:  forecast.UvIndexMax,
 		RainProb: forecast.PrecipProbability,

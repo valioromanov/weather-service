@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"weather-service/internal/handler"
 	"weather-service/internal/logging"
 )
 
@@ -26,7 +27,7 @@ func NewOpenMateoClient(hc HttpRequester, url string) *OpenMateoClient {
 	}
 }
 
-func (c *OpenMateoClient) GetForecast(lat, long string) (ForecastMap, error) {
+func (c *OpenMateoClient) GetForecast(lat, long string) (handler.ForecastMap, error) {
 	logrus.WithFields(logrus.Fields{
 		"lat":  lat,
 		"long": long,
@@ -45,9 +46,9 @@ func (c *OpenMateoClient) GetForecast(lat, long string) (ForecastMap, error) {
 		logging.LogError(err, map[string]interface{}{"lat": lat, "long": long})
 		return nil, err
 	}
-	fm := make(ForecastMap)
+	fm := make(handler.ForecastMap)
 	for i := 0; i < len(opr.Daily.Time); i++ {
-		fm[opr.Daily.Time[i]] = Forecast{
+		fm[opr.Daily.Time[i]] = handler.Forecast{
 			Latitude:          fmt.Sprintf("%.4f", opr.Latitude),
 			Longitude:         fmt.Sprintf("%.4f", opr.Longitude),
 			Temp2max:          opr.Daily.Temperature2mMax[i],

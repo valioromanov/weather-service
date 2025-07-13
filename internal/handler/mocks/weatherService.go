@@ -6,8 +6,7 @@ package mocks
 
 import (
 	reflect "reflect"
-	cache "weather-service/internal/cache"
-	weather "weather-service/internal/weather"
+	handler "weather-service/internal/handler"
 
 	gomock "github.com/golang/mock/gomock"
 )
@@ -36,10 +35,10 @@ func (m *MockForecastClient) EXPECT() *MockForecastClientMockRecorder {
 }
 
 // GetForecast mocks base method.
-func (m *MockForecastClient) GetForecast(lat, long string) (weather.ForecastMap, error) {
+func (m *MockForecastClient) GetForecast(lat, long string) (handler.ForecastMap, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetForecast", lat, long)
-	ret0, _ := ret[0].(weather.ForecastMap)
+	ret0, _ := ret[0].(handler.ForecastMap)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -74,10 +73,10 @@ func (m *MockCache) EXPECT() *MockCacheMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockCache) Get(key string) (*cache.CachedWeather, error) {
+func (m *MockCache) Get(key string) (*handler.CachedWeather, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", key)
-	ret0, _ := ret[0].(*cache.CachedWeather)
+	ret0, _ := ret[0].(*handler.CachedWeather)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -89,7 +88,7 @@ func (mr *MockCacheMockRecorder) Get(key interface{}) *gomock.Call {
 }
 
 // Put mocks base method.
-func (m *MockCache) Put(key string, weather *cache.CachedWeather) error {
+func (m *MockCache) Put(key string, weather *handler.CachedWeather) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Put", key, weather)
 	ret0, _ := ret[0].(error)

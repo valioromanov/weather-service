@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"weather-service/helper/mockutil"
 	"weather-service/internal/cache/mocks"
+	"weather-service/internal/handler"
 
 	"weather-service/internal/cache"
 )
@@ -26,9 +27,9 @@ var _ = Describe("Dynamodb", mockutil.Mockable(func(helper *mockutil.Helper) {
 
 	Context("GetItem", func() {
 		When("everything works", func() {
-			var item cache.CachedWeather
+			var item handler.CachedWeather
 			BeforeEach(func() {
-				item = cache.CachedWeather{
+				item = handler.CachedWeather{
 					Key:      "42.0_23.0_2025-07-10",
 					TempMax:  30.5,
 					UVIndex:  7.8,
@@ -93,7 +94,7 @@ var _ = Describe("Dynamodb", mockutil.Mockable(func(helper *mockutil.Helper) {
 	})
 
 	Context("PutItem", func() {
-		cachedWeather := &cache.CachedWeather{
+		cachedWeather := &handler.CachedWeather{
 			TempMax:  30.5,
 			UVIndex:  7.8,
 			RainProb: 40.0,
